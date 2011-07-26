@@ -17,4 +17,12 @@ Gem::Specification.new do |s|
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
+
+  s.add_dependency('hpricot', '~> 0.8.4')
+  s.add_dependency('sqlite3', "~> 1.3.3")
+  s.add_dependency('rest-client', "~> 1.6.1")
+  s.add_dependency('main', "~> 4.6")
+  s.add_dependency('json', "~> 1.5.3")
+
+  s.add_development_dependency('ruby-debug', "~> 0.10.4")
 end

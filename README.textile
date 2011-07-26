@@ -11,3 +11,5 @@ h2. Map
 * Content Map: An enumerable collection of source HTML nodes and associated Conductor attributes.
   - Source CSS Selector:
   - Target Attribute:
+
+As the content is transferred, images and links need to be processed as well to ensure that we are properly transferring them as well.
