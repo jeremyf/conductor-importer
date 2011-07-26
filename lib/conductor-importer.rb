@@ -11,7 +11,13 @@ module Conductor
     def self.process(filename)
       json_object = JSON.parse(File.read(filename))
       Storage.init(true)
-      Batch.download(json_object)
+      Batch.create(:batch_key => json_object['batch_key']) do |batch|
+        batch.download( json_object['entries'] )
+        batch.process_images
+        batch.process_links
+        batch.transform_content
+        batch.upload
+      end
     end
   end
 end

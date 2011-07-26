@@ -14,9 +14,12 @@ module Conductor
       def self.init(force = false)
         ActiveRecord::Schema.define do
           create_table :batches, :force => force do |table|
-            table.column :key, :string, :null => false
+            table.column :batch_key, :string, :null => false
             table.column :state, :string
           end
+
+          add_index :batches, :batch_key, :unique => true
+
           create_table :pages, :force => force do |table|
             table.column :batch_id, :integer, :null => false
             table.column :source_url, :string, :null => false
@@ -24,7 +27,6 @@ module Conductor
             table.column :name, :string, :null => false
             table.column :state, :string
             table.column :content_map, :text
-            table.column :batch_number, :datetime
           end
 
           create_table :page_attributes, :force => force do |table|
@@ -39,7 +41,6 @@ module Conductor
             table.column :source_url, :string, :null => false
             table.column :target_url, :string
             table.column :state, :string
-            table.column :batch_number, :datetime
             table.column :type, :string
           end
 
