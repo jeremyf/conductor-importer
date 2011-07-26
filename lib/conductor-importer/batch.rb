@@ -13,10 +13,10 @@ module Conductor
         end
       end
 
-      def self.process(entries)
-        batch = Batch.create(:key => Time.now.to_s)
+      def self.download(object)
+        batch = Batch.create(:key => object['batch_number'] || Time.now.to_s)
 
-        entries.each do |entry|
+        object['entries'].each do |entry|
           batch.pages.build(entry).tap do |page|
             response = RestClient.get(entry['source_url'], :accept => :html)
             doc = Hpricot(response.body)
@@ -54,7 +54,7 @@ module Conductor
       serialize :content_map
       has_and_belongs_to_many :referenced_objects
 
-      state_machine :state
+      state_machine :state, :initial => :downloaded
     end
     class PageAttribute < ActiveRecord::Base
       belongs_to :page

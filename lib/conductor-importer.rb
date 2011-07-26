@@ -8,10 +8,10 @@ require 'hpricot'
 module Conductor
   module Importer
     # Your code goes here...
-    def self.import(filename)
+    def self.process(filename)
       json_object = JSON.parse(File.read(filename))
       Storage.init(true)
-      Batch.process(json_object)
+      Batch.download(json_object)
     end
   end
 end

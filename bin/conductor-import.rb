@@ -10,7 +10,7 @@ Main {
   }
 
   def run
-    Conductor::Importer.import(params['filename'].value)
+    Conductor::Importer.process(params['filename'].value)
     exit_success!
   rescue RuntimeError => e
     exit_failure!
