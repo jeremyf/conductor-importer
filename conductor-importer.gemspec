@@ -19,6 +19,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency('hpricot', '~> 0.8.4')
+  s.add_dependency('activerecord', '~> 3.0.5')
   s.add_dependency('sqlite3', "~> 1.3.3")
   s.add_dependency('rest-client', "~> 1.6.1")
   s.add_dependency('main', "~> 4.6")

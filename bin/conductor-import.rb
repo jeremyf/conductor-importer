@@ -5,6 +5,9 @@ Main {
   argument('filename') {
     description 'the name of the map file; JSON format'
   }
+  option('database') {
+    description 'the name of the database that we will be creating; SQLite'
+  }
 
   def run
     Conductor::Importer.import(params['filename'].value)
