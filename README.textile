@@ -1,0 +1,13 @@
+h1. Conductor Importer
+
+This gem assists in transferring content and assets from one page to a
+Conductor page.
+
+h2. Map
+
+* Source URL: What is the page that you want to transfer
+* Target Host: What is the Conductor host that you will be importing to?
+* Target Parent: What is the target Conductor parent within the Target Host?
+* Content Map: An enumerable collection of source HTML nodes and associated Conductor attributes.
+  - Source CSS Selector:
+  - Target Attribute:
