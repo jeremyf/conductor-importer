@@ -13,7 +13,12 @@ module Conductor
     class Storage
       def self.init(force = false)
         ActiveRecord::Schema.define do
+          create_table :batches, :force => force do |table|
+            table.column :key, :string, :null => false
+            table.column :state, :string
+          end
           create_table :pages, :force => force do |table|
+            table.column :batch_id, :integer, :null => false
             table.column :source_url, :string, :null => false
             table.column :target_url, :string, :null => false
             table.column :name, :string, :null => false
@@ -30,6 +35,7 @@ module Conductor
           end
 
           create_table :referenced_objects, :force => force do |table|
+            table.column :batch_id, :integer, :null => false
             table.column :source_url, :string, :null => false
             table.column :target_url, :string
             table.column :state, :string
@@ -43,21 +49,6 @@ module Conductor
           end
         end
       end
-    end
-    class Page < ActiveRecord::Base
-      has_many :page_attributes, :dependent => :destroy
-      serialize :content_map
-      has_and_belongs_to_many :referenced_objects
-    end
-    class PageAttribute < ActiveRecord::Base
-      belongs_to :page
-    end
-    class ReferencedObject < ActiveRecord::Base
-      has_and_belongs_to_many :pages
-    end
-    class Image < ReferencedObject
-    end
-    class Link < ReferencedObject
     end
   end
 end
