@@ -4,7 +4,8 @@ module Conductor
     # given state, the method is overridden.
     module PageCommands
       def download!(*args); end
-      def transform_content(*args); end
+      def transform_content!(*args); end
+      def upload!(*args); end
     end
 
 
@@ -26,8 +27,8 @@ module Conductor
         state :preprocess do
           include PageCommands
           def download!(batch,entry)
-
             self.batch = batch
+            batch.pages << self
             self.content_map = entry['content_map']
             self.target_url = entry['target_url']
             self.name = entry['name']
@@ -62,11 +63,20 @@ module Conductor
         end
         state :downloaded do
           include PageCommands
-          def transform_content
+          def transform_content!
+            referenced_resources.each {|resource|
+              page_attributes.each {|page_attribute|
+                resource.replace_content(page_attribute.value) { |new_value|
+                  page_attribute.update_attribute(:value, new_value)
+                }
+              }
+            }
           end
         end
         state :content_transformed do
           include PageCommands
+          def upload!
+          end
         end
         state :uploaded do
           include PageCommands

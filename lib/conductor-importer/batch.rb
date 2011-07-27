@@ -23,6 +23,19 @@ module Conductor
         event :download_completed do
           transition [:started] => :download_complete
         end
+        event :images_processed do
+          transition [:download_complete] => :images_processed
+        end
+        event :links_processed do
+          transition [:images_processed] => :links_processed
+        end
+        event :content_transformed do
+          transition [:links_processed] => :content_transformed
+        end
+        event :upload_completed do
+          transition [:content_transformed] => :uploaded
+        end
+
         state :started do
           include BatchCommands
           def download(entries)
@@ -36,12 +49,16 @@ module Conductor
           include BatchCommands
 
           def process_images
+            images.each {|image| image.process! }
+            images_processed!
           end
         end
         state :images_processed do
           include BatchCommands
 
           def process_links
+            links.each {|link| link.process! }
+            links_processed!
           end
         end
 
@@ -49,13 +66,16 @@ module Conductor
           include BatchCommands
 
           def transform_content
+            pages.each { |page| page.transform_content! }
+            content_transformed!
           end
         end
 
         state :content_transformed do
           include BatchCommands
-
           def upload
+            pages.each {|page| page.upload! }
+            upload_completed!
           end
         end
 
