@@ -69,6 +69,7 @@ module Conductor
 
     module PageCommands
       def download!(*args); end
+      def transform_content(*args); end
     end
 
 
@@ -126,6 +127,8 @@ module Conductor
         end
         state :downloaded do
           include PageCommands
+          def transform_content
+          end
         end
         state :content_transformed do
           include PageCommands
