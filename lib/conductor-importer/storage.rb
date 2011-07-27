@@ -36,7 +36,7 @@ module Conductor
             table.column :value, :text, :null => false
           end
 
-          create_table :referenced_objects, :force => force do |table|
+          create_table :referenced_resources, :force => force do |table|
             table.column :batch_id, :integer, :null => false
             table.column :source_url, :string, :null => false
             table.column :target_url, :string
@@ -44,9 +44,9 @@ module Conductor
             table.column :type, :string
           end
 
-          create_table :pages_referenced_objects, :force => force, :id => false do |table|
+          create_table :pages_referenced_resources, :force => force, :id => false do |table|
             table.column :page_id, :integer, :null => false
-            table.column :referenced_object_id, :integer, :null => false
+            table.column :referenced_resource_id, :integer, :null => false
           end
         end
       end

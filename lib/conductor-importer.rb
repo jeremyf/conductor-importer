@@ -1,9 +1,13 @@
-require "conductor-importer/version"
-require "conductor-importer/storage"
-require "conductor-importer/batch"
+require 'state_machine'
 require 'json'
 require 'rest_client'
 require 'hpricot'
+
+require "conductor-importer/version"
+require "conductor-importer/storage"
+require "conductor-importer/batch"
+require "conductor-importer/page"
+require "conductor-importer/referenced_resource"
 
 module Conductor
   module Importer
