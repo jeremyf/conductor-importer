@@ -134,6 +134,8 @@ module Conductor
           else
             self.target_url = page.target_uri.path
           end
+        elsif source_url =~ /\/assets\/\d+/
+          # We need to download these things
         end
         save!
       end
