@@ -37,6 +37,9 @@ module Conductor
         event :download_complete do
           transition :preprocess => :downloaded
         end
+        event :transformed_content do
+          transition :downloaded => :content_transformed
+        end
 
         state :preprocess do
           include PageCommands
@@ -73,7 +76,6 @@ module Conductor
 
               self.page_attributes.build(:key => options['target_attribute'], :value => source_content.collect(&:to_s).join("\n"))
             end
-            # self.save!
             self.download_complete!
           end
         end
@@ -87,6 +89,7 @@ module Conductor
                 }
               }
             }
+            self.transformed_content!
           end
         end
         state :content_transformed do
