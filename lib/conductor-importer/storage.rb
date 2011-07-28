@@ -15,6 +15,9 @@ module Conductor
         ActiveRecord::Schema.define do
           create_table :batches, :force => force do |table|
             table.column :batch_key, :string, :null => false
+            table.column :base_source_url, :string, :null => false
+            table.column :base_target_url, :string, :null => false
+            table.column :source_is_conductor, :boolean
             table.column :state, :string
           end
 
