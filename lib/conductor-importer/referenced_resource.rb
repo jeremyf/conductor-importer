@@ -20,7 +20,11 @@ module Conductor
         end
         state :source_processed do
           include ReferencedResourceCommands
+          # It is likely that this will need to be adjusted.
+          # Namely what happens if replace_content is called before
+          # the source_processed
           def replace_content(value)
+            return false if target_url.nil?
             if source_url.to_s != target_url.to_s
               yield(value.gsub(source_url.to_s, target_url.to_s))
             end
