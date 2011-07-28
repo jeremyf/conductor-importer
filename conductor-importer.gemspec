@@ -25,6 +25,7 @@ Gem::Specification.new do |s|
   s.add_dependency('main', "~> 4.6")
   s.add_dependency('json', "~> 1.5.3")
   s.add_dependency('state_machine', "~> 1.0.1")
+  s.add_dependency('highline', "~> 1.6.2")
 
   s.add_development_dependency('ruby-debug', "~> 0.10.4")
 end
