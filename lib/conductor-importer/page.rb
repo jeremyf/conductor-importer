@@ -16,8 +16,17 @@ module Conductor
       has_and_belongs_to_many :referenced_resources
       delegate :base_target_url, :base_source_url, :to => :batch
 
-      def full_source_url
+      def self.find_by_absolute_url(absolute_source_url)
+        uri = URI.parse(absolute_source_url.to_s)
+        where("pages.source_url IN (?)", [uri.path.to_s, uri.to_s, File.join(uri.path.to_s, '/'), File.join(uri.to_s, '/')]).first
+      end
+
+      def absolute_source_url
         source_url =~ /^\// ? File.join(base_source_url, source_url) : source_url
+      end
+
+      def target_uri
+        @target_uri ||= URI.parse(target_url =~ /^\// ? File.join(base_target_url, target_url) : target_url)
       end
 
       def self.create_from!(batch, entry)
@@ -33,13 +42,14 @@ module Conductor
           include PageCommands
           def download!(batch,entry)
             self.batch = batch
-            batch.pages << self
             self.content_map = entry['content_map']
             self.target_url = entry['target_url']
             self.name = entry['name']
             self.source_url = entry['source_url']
 
-            response = RestClient.get(full_source_url, :accept => :html)
+            batch.pages << self
+
+            response = RestClient.get(absolute_source_url, :accept => :html)
             doc = Hpricot(response.body)
 
             # Collect the parts

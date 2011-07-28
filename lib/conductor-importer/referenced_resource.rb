@@ -7,12 +7,23 @@ module Conductor
     class ReferencedResource < ActiveRecord::Base
       belongs_to :batch, :class_name => '::Conductor::Importer::Batch'
       has_and_belongs_to_many :pages, :class_name => '::Conductor::Importer::Page'
-      delegate :target_host_uri, :source_host_uri, :base_target_url, :base_source_url, :source_is_conductor?, :to => :batch
+      delegate :target_host_uri,
+      :source_host_uri,
+      :base_target_url,
+      :base_source_url,
+      :source_is_conductor?,
+      :pages,
+      :to => :batch
+
+      def absolute_source_url
+        @absolute_source_url ||= URI.parse(source_url =~ /^\// ? File.join(base_source_url, source_url) : source_url)
+      end
 
       def include_in_import?
         return true if source_url.to_s.strip =~ /^(#{source_host_uri.scheme.sub(/s?$/, 's?')}:\/\/#{source_host_uri.host})?\//
         false
       end
+      protected :include_in_import?
 
       state_machine :state, :initial => :preprocess do
         event :process_complete do
@@ -22,6 +33,7 @@ module Conductor
           transition :preprocess => :skipped
         end
         state :skipped do
+          include ReferencedResourceCommands
         end
         state :preprocess do
           include ReferencedResourceCommands
@@ -50,14 +62,10 @@ module Conductor
       end
     end
     class Image < ReferencedResource
-      def full_source_url
-        @full_source_url ||= URI.parse(source_url =~ /^\// ? File.join(base_source_url, source_url) : source_url)
-      end
-
-      def full_source_url_for_download
-        @full_source_url_for_download ||=
+      def absolute_source_url_for_download
+        @absolute_source_url_for_download ||=
         if source_is_conductor?
-          slugs = full_source_url.path.sub(/^\//,'').split("/")
+          slugs = absolute_source_url.path.sub(/^\//,'').split("/")
           if slugs.length == 3
             slugs = [slugs[0], slugs[1], 'original', slugs[2]]
           elsif slugs[2] != 'original'
@@ -65,7 +73,7 @@ module Conductor
           end
           URI.parse(File.join(base_source_url,slugs.join('/')))
         else
-          full_source_url
+          absolute_source_url
         end
       end
 
@@ -74,7 +82,7 @@ module Conductor
       def temp_filename
         dirname = File.join(File.dirname(__FILE__), "../../tmp/images/#{self[:id]}/")
         FileUtils.mkdir_p(dirname)
-        File.join(dirname, "#{File.basename(full_source_url_for_download.to_s)}")
+        File.join(dirname, "#{File.basename(absolute_source_url_for_download.to_s)}")
       end
       def __process!
         download!
@@ -91,18 +99,18 @@ module Conductor
         rescue RestClient::Found => e
           uri = URI.parse(e.response.headers[:location])
           asset_id = uri.path.sub(/^\/admin\/assets\/(\d+)(\/.*)?/, '\1')
-          slugs = full_source_url.path.sub(/^\//,'').split("/")
+          slugs = absolute_source_url.path.sub(/^\//,'').split("/")
           if source_is_conductor? && slugs[0] == 'assets'
             slugs[1] = asset_id
             self.target_url = File.join('/', slugs.join('/'))
           else
-            self.target_url = File.join('/assets', asset_id, 'original', File.basename(full_source_url.to_s))
+            self.target_url = File.join('/assets', asset_id, 'original', File.basename(absolute_source_url.to_s))
           end
           save!
         end
       end
       def download!
-        response = RestClient.get(full_source_url_for_download.to_s)
+        response = RestClient.get(absolute_source_url_for_download.to_s)
         File.open(temp_filename, 'w+') do |file|
           file.puts response.body
         end
@@ -110,7 +118,24 @@ module Conductor
     end
     class Link < ReferencedResource
       protected
+      # We need only links to pages that we are migrating
+      # or links to any images that we have touched; Note
+      # this could include images that are not at the exact same
+      # url as the img tag would indicate (i.e. /assets/45/original/hello.jpg)
+      def include_in_import?
+        # if link is to downloaded page
+        return true if pages.find_by_absolute_url(absolute_source_url)
+      end
       def __process!
+        if page = pages.find_by_absolute_url(absolute_source_url)
+          path, hash = source_url.split("#")
+          if hash
+            self.target_url = "#{page.target_uri.path}##{hash}"
+          else
+            self.target_url = page.target_uri.path
+          end
+        end
+        save!
       end
     end
   end

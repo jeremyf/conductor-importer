@@ -51,6 +51,7 @@ module Conductor
               Page.create_from!(self, entry)
             end
             self.download_completed!
+            self.reload
           end
         end
         state :download_complete do
@@ -59,6 +60,7 @@ module Conductor
           def process_images
             images.each {|image| image.process! }
             images_processed!
+            self.reload
           end
         end
         state :images_processed do
@@ -67,6 +69,7 @@ module Conductor
           def process_links
             links.each {|link| link.process! }
             links_processed!
+            self.reload
           end
         end
 
@@ -76,6 +79,7 @@ module Conductor
           def transform_content
             pages.each { |page| page.transform_content! }
             content_transformed!
+            self.reload
           end
         end
 
@@ -84,6 +88,7 @@ module Conductor
           def upload
             pages.each {|page| page.upload! }
             upload_completed!
+            self.reload
           end
         end
 
