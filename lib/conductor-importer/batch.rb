@@ -19,6 +19,14 @@ module Conductor
       has_many :links, :class_name => '::Conductor::Importer::Link'
 
 
+      def target_host_uri
+        @target_host_uri ||= URI.parse(base_target_url)
+      end
+
+      def source_host_uri
+        @source_host_uri ||= URI.parse(base_source_url)
+      end
+
       state_machine :state, :initial => :started do
         event :download_completed do
           transition [:started] => :download_complete

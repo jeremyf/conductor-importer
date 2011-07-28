@@ -7,17 +7,31 @@ module Conductor
     class ReferencedResource < ActiveRecord::Base
       belongs_to :batch, :class_name => '::Conductor::Importer::Batch'
       has_and_belongs_to_many :pages, :class_name => '::Conductor::Importer::Page'
-      delegate :base_target_url, :base_source_url, :source_is_conductor?, :to => :batch
+      delegate :target_host_uri, :source_host_uri, :base_target_url, :base_source_url, :source_is_conductor?, :to => :batch
+
+      def include_in_import?
+        return true if source_url.to_s.strip =~ /^(#{source_host_uri.scheme.sub(/s?$/, 's?')}:\/\/#{source_host_uri.host})?\//
+        false
+      end
 
       state_machine :state, :initial => :preprocess do
-        event :process_complete! do
+        event :process_complete do
           transition :preprocess => :source_processed
+        end
+        event :skip do
+          transition :preprocess => :skipped
+        end
+        state :skipped do
         end
         state :preprocess do
           include ReferencedResourceCommands
           def process!
-            __process!
-            process_complete!
+            if include_in_import?
+              __process!
+              process_complete!
+            else
+              skip!
+            end
           end
         end
         state :source_processed do
@@ -27,6 +41,7 @@ module Conductor
           # the source_processed
           def replace_content(value)
             return false if target_url.nil?
+            return false if include_in_import?
             if source_url.to_s != target_url.to_s
               yield(value.gsub(source_url.to_s, target_url.to_s))
             end
