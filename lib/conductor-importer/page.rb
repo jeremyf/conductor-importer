@@ -14,6 +14,11 @@ module Conductor
       has_many :page_attributes, :dependent => :destroy, :class_name => '::Conductor::Importer::PageAttribute'
       serialize :content_map
       has_and_belongs_to_many :referenced_resources
+      delegate :base_target_url, :base_source_url, :to => :batch
+
+      def full_source_url
+        source_url =~ /^\// ? File.join(base_source_url, source_url) : source_url
+      end
 
       def self.create_from!(batch, entry)
         batch.pages.find_or_initialize_by_batch_id_and_source_url(batch[:id], entry['source_url']).download!(batch,entry)
@@ -32,8 +37,9 @@ module Conductor
             self.content_map = entry['content_map']
             self.target_url = entry['target_url']
             self.name = entry['name']
+            self.source_url = entry['source_url']
 
-            response = RestClient.get(entry['source_url'], :accept => :html)
+            response = RestClient.get(full_source_url, :accept => :html)
             doc = Hpricot(response.body)
 
             # Collect the parts
