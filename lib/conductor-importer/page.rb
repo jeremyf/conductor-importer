@@ -109,7 +109,7 @@ module Conductor
               'slug' => slug
             }
             page_attributes.inject(@attributes_for_post) {|mem, obj|
-              mem[obj.key] = obj.value
+              obj.construct_attribute_hash_for(mem)
               mem
             }
           end

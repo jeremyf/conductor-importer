@@ -33,6 +33,7 @@ module Conductor
           end
 
           add_index :pages, :batch_id
+          add_index :pages, [:batch_id, :source_url], :unique => true
           add_index :pages, :target_url
 
           create_table :page_attributes, :force => force do |table|
@@ -42,8 +43,9 @@ module Conductor
             table.column :value, :text, :null => false
           end
 
-          add_index :page_attributes, :page_id, :unique => true
+          add_index :page_attributes, :page_id
           add_index :page_attributes, :key
+          add_index :page_attributes, [:page_id, :key], :unique => true
 
           create_table :referenced_resources, :force => force do |table|
             table.column :batch_id, :integer, :null => false
