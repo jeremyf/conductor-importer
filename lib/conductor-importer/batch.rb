@@ -86,7 +86,7 @@ module Conductor
         state :content_transformed do
           include BatchCommands
           def upload
-            pages.each {|page| page.upload! }
+            pages.upload_order.each {|page| page.upload! }
             upload_completed!
             self.reload
           end
@@ -96,10 +96,6 @@ module Conductor
           include BatchCommands
         end
       end
-    end
-
-    class PageAttribute < ActiveRecord::Base
-      belongs_to :page, :class_name => '::Conductor::Importer::Page'
     end
   end
 end

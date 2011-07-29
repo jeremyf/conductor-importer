@@ -38,6 +38,7 @@ module Conductor
         state :preprocess do
           include ReferencedResourceCommands
           def process!
+            skip! and return true
             if include_in_import?
               __process!
               process_complete!
@@ -134,8 +135,9 @@ module Conductor
           else
             self.target_url = page.target_uri.path
           end
-        elsif source_url =~ /\/assets\/\d+/
-          # We need to download these things
+        elsif source_url =~ /\/assets\/\d+/ && source_is_conductor?
+          # We need to download these things, but for now I don't know the
+          # full use case.
         end
         save!
       end

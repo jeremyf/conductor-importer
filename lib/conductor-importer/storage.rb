@@ -32,12 +32,18 @@ module Conductor
             table.column :content_map, :text
           end
 
+          add_index :pages, :batch_id
+          add_index :pages, :target_url
+
           create_table :page_attributes, :force => force do |table|
             table.column :page_id, :integer, :null => false
             table.column :key, :string, :null => false
             table.column :state, :string
             table.column :value, :text, :null => false
           end
+
+          add_index :page_attributes, :page_id, :unique => true
+          add_index :page_attributes, :key
 
           create_table :referenced_resources, :force => force do |table|
             table.column :batch_id, :integer, :null => false
@@ -47,10 +53,14 @@ module Conductor
             table.column :type, :string
           end
 
+          add_index :referenced_resources, :batch_id
+
           create_table :pages_referenced_resources, :force => force, :id => false do |table|
             table.column :page_id, :integer, :null => false
             table.column :referenced_resource_id, :integer, :null => false
           end
+          add_index :pages_referenced_resources, [:page_id, :referenced_resource_id], :name => :pages_referenced_resources_index
+
         end
       end
     end

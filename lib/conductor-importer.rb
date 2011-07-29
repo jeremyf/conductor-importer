@@ -12,6 +12,7 @@ require "conductor-importer/storage"
 require "conductor-importer/batch"
 require "conductor-importer/page"
 require "conductor-importer/referenced_resource"
+require "conductor-importer/page_attribute"
 
 module Conductor
   module Importer

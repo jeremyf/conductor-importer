@@ -14,11 +14,17 @@ module Conductor
       has_many :page_attributes, :dependent => :destroy, :class_name => '::Conductor::Importer::PageAttribute'
       serialize :content_map
       has_and_belongs_to_many :referenced_resources
-      delegate :base_target_url, :base_source_url, :to => :batch
+      delegate :target_host_uri, :base_target_url, :base_source_url, :to => :batch
+
+      scope :upload_order, order("#{quoted_table_name}.target_url ASC")
 
       def self.find_by_absolute_url(absolute_source_url)
         uri = URI.parse(absolute_source_url.to_s)
         where("pages.source_url IN (?)", [uri.path.to_s, uri.to_s, File.join(uri.path.to_s, '/'), File.join(uri.to_s, '/')]).first
+      end
+
+      def slug
+        @slug ||= target_url.sub(/\/$/,'').split("/").pop
       end
 
       def absolute_source_url
@@ -39,6 +45,9 @@ module Conductor
         end
         event :transformed_content do
           transition :downloaded => :content_transformed
+        end
+        event :uploaded do
+          transition :content_transformed => :uploaded
         end
 
         state :preprocess do
@@ -93,8 +102,49 @@ module Conductor
           end
         end
         state :content_transformed do
+          def attributes_for_post
+            return @attributes_for_post if @attributes_for_post
+            @attributes_for_post = {
+              'name' => name,
+              'slug' => slug
+            }
+            page_attributes.inject(@attributes_for_post) {|mem, obj|
+              mem[obj.key] = obj.value
+              mem
+            }
+          end
           include PageCommands
           def upload!
+            # Establish the pages parent_id
+            parent_slug = target_url.sub(/\/$/,'').split("/")
+            parent_slug.pop
+            parent_url = parent_slug.join("/")
+            parent_id = nil
+            if parent_url !~ /^\/?$/
+              parent_uri = URI.parse(File.join(target_host_uri.to_s, parent_url))
+              parent_uri.path = "#{parent_uri.path}.js"
+              begin
+                response = RestClient.get(parent_uri.to_s, :accept => :json)
+                json = JSON.parse(response.body)
+                parent_id = json['id']
+              rescue RestClient::InternalServerError => e
+                require 'ruby-debug'; debugger; true;
+              end
+            end
+
+            # Post
+            begin
+              RestClient.post(
+                File.join("#{target_host_uri.scheme}://#{Conductor::Importer.net_id}:#{Conductor::Importer.password}@#{target_host_uri.host}:#{target_host_uri.port}", '/admin/pages'),
+                {'page' => attributes_for_post},
+                :accept => :html
+              )
+            rescue RestClient::Found => e
+              uri = URI.parse(e.response.headers[:location])
+              self.uploaded!
+            rescue Exception => e
+              require 'ruby-debug'; debugger; true;
+            end
           end
         end
         state :uploaded do
