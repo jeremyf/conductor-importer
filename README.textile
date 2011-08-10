@@ -5,11 +5,31 @@ Conductor page.
 
 h2. Map
 
-* Source URL: What is the page that you want to transfer
-* Target Host: What is the Conductor host that you will be importing to?
-* Target Parent: What is the target Conductor parent within the Target Host?
-* Content Map: An enumerable collection of source HTML nodes and associated Conductor attributes.
-  - Source CSS Selector:
-  - Target Attribute:
+Below is an example map.
+
+<pre>
+{
+  "batch_key":"1",
+  "base_source_url":"http://vocation.nd.edu/",
+  "base_target_url":"http://localhost:3000/",
+  "source_is_conductor":true,
+  "entries":
+  [
+    {
+      "source_url":"/seminary/visual-tour-of-moreau-seminary/",
+      "target_url":"/visual-tour-of-moreau-seminary/",
+      "name":"Visual Tour of Moreau Seminary",
+      "template":"page",
+      "content_map":
+      [
+        {
+          "selector_method_chain":[["at", "#content #banner"], ["following_siblings"]],
+          "target_attribute":"content"
+        }
+      ]
+    }
+  ]
+}
+</pre>
 
 As the content is transferred, images and links need to be processed as well to ensure that we are properly transferring them as well.

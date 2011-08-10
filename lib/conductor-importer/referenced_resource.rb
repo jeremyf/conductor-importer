@@ -38,7 +38,6 @@ module Conductor
         state :preprocess do
           include ReferencedResourceCommands
           def process!
-            skip! and return true
             if include_in_import?
               __process!
               process_complete!
@@ -54,7 +53,7 @@ module Conductor
           # the source_processed
           def replace_content(value)
             return false if target_url.nil?
-            return false if include_in_import?
+            return false if ! include_in_import?
             if source_url.to_s != target_url.to_s
               yield(value.gsub(source_url.to_s, target_url.to_s))
             end

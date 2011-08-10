@@ -56,6 +56,7 @@ module Conductor
             self.batch = batch
             self.content_map = entry['content_map']
             self.target_url = entry['target_url']
+            self.template = entry['template']
             self.name = entry['name']
             self.source_url = entry['source_url']
 
@@ -94,6 +95,7 @@ module Conductor
             referenced_resources.each {|resource|
               page_attributes.each {|page_attribute|
                 resource.replace_content(page_attribute.value) { |new_value|
+                  require 'ruby-debug'; debugger; true;
                   page_attribute.update_attribute(:value, new_value)
                 }
               }
@@ -103,15 +105,17 @@ module Conductor
         end
         state :content_transformed do
           def attributes_for_post
-            return @attributes_for_post if @attributes_for_post
             @attributes_for_post = {
               'name' => name,
-              'slug' => slug
+              'slug' => slug,
+              'template' => template
             }
-            page_attributes.inject(@attributes_for_post) {|mem, obj|
+            page_attributes.reload.inject(@attributes_for_post) {|mem, obj|
               obj.construct_attribute_hash_for(mem)
               mem
             }
+            require 'ruby-debug'; debugger; true;
+            @attributes_for_post
           end
           include PageCommands
           def upload!

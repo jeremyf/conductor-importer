@@ -28,6 +28,7 @@ module Conductor
             table.column :source_url, :string, :null => false
             table.column :target_url, :string, :null => false
             table.column :name, :string, :null => false
+            table.column :template, :string, :null => false
             table.column :state, :string
             table.column :content_map, :text
           end
